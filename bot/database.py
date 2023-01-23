@@ -18,11 +18,10 @@ class Database:
     def check_if_user_exists(self, user_id: int, raise_exception: bool = False):
         if self.user_collection.count_documents({"_id": user_id}) > 0:
             return True
+        if raise_exception:
+            raise ValueError(f"User {user_id} does not exist")
         else:
-            if raise_exception:
-                raise ValueError(f"User {user_id} does not exist")
-            else:
-                return False
+            return False
         
     def add_new_user(
         self,

@@ -88,10 +88,15 @@ async def message_handle(update: Update, context: CallbackContext, message=None,
     user_id = update.message.from_user.id
 
     # new dialog timeout
-    if use_new_dialog_timeout:
-        if (datetime.now() - db.get_user_attribute(user_id, "last_interaction")).seconds > config.new_dialog_timeout:
-            db.start_new_dialog(user_id)
-            await update.message.reply_text("Starting new dialog due to timeout ✅")
+    if (
+        use_new_dialog_timeout
+        and (
+            datetime.now() - db.get_user_attribute(user_id, "last_interaction")
+        ).seconds
+        > config.new_dialog_timeout
+    ):
+        db.start_new_dialog(user_id)
+        await update.message.reply_text("Starting new dialog due to timeout ✅")
     db.set_user_attribute(user_id, "last_interaction", datetime.now())
 
     # send typing action
@@ -154,9 +159,15 @@ async def show_chat_modes_handle(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
     db.set_user_attribute(user_id, "last_interaction", datetime.now())
 
-    keyboard = []
-    for chat_mode, chat_mode_dict in chatgpt.CHAT_MODES.items():
-        keyboard.append([InlineKeyboardButton(chat_mode_dict["name"], callback_data=f"set_chat_mode|{chat_mode}")])
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                chat_mode_dict["name"],
+                callback_data=f"set_chat_mode|{chat_mode}",
+            )
+        ]
+        for chat_mode, chat_mode_dict in chatgpt.CHAT_MODES.items()
+    ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     await update.message.reply_text("Select chat mode:", reply_markup=reply_markup)
